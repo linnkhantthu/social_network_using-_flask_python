@@ -1,0 +1,85 @@
+<!-- final_list[0][1]['id'] -->
+{% extends "layout.html" %}
+{% block head %}
+    {% for post in posts.items %}
+        {% if post.poll_data %}
+            <script type=text/javascript>
+            $(function() {
+              $('a#process_input_{{post.id}}').bind('click', function() {
+                $.getJSON('/background_process', {
+                  proglang: $('input[name="proglang_{{post.id}}"]:checked').val(),
+                  user: "{{current_user.username}}",
+                  post_id: "{{post.id}}"
+                }, function(data) {
+                  alert(data.result);
+                });
+                return false;
+              });
+            });
+            </script>
+        {% endif %}
+    {% endfor %}
+
+{% endblock head %}
+
+{% block content %}
+    {% for post in posts.items %}
+        <article class="media content-section">
+            <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
+          <div class="media-body">
+            <div class="article-metadata">
+              <a class="mr-2" href="{{ url_for('users.user_posts', username=post.author.username) }}">{{ post.author.username }}</a>
+              <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+              <small>
+                <small class="bg-secondary p-1 rounded" ><a class="text-white" href="{{ url_for('posts.search_posts', tag=post.tag) }}">{{ post.tag }}</a></small>
+              </small>
+            </div>
+            <h2><a class="article-title" href="{{ url_for('posts.post', post_id=post.id) }}">{{ post.title }}</a></h2>
+            <p class="article-content">{{ post.content }}</p>
+                    {% if post.poll_data %}
+                        <div class="btn-group btn-group-toggle row row-cols-2">
+                        <form class="flex-row" data-toggle="buttons">
+                        {% for field in post.poll_data %}
+                            <label class="btn btn-light active col mr-1 mb-1">
+                                <input type="radio" style="opacity: 0;" name="proglang_{{post.id}}" value="{{ field }}" >{{ field }}
+                                {% set count=namespace(value=0) %}
+                                {% for final in final_list %}
+                                    {% for final_ in final %}
+                                        {% if final_['result'] == field|lower and final_['id'] == post.id|string %}
+                                            {% set count.value = count.value + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {%endfor%}
+                                <i id="proglang_{{post.id}}" class="float-right badge badge-info" > {{ count.value }} </i>
+                            </label>
+                        {% endfor %}
+                        <a href='#' id="process_input_{{post.id}}"><button class='btn btn-light' type="submit" ><i class="fa fa-check"></i></button></a>
+                        </form>
+                        </div>
+                            <p id="result"></p>
+                    {% endif %}
+            <a class="btn btn-danger btn-sm m-1 text-light" href="{{ url_for('posts.post', post_id=post.id) }}">
+                {% set count=namespace(value=0) %}
+                {% for comment in comments %}
+                    {% if comment.post_id == post.id %}
+                        {% set count.value = count.value + 1 %}
+                    {% endif %}
+                {% endfor %}
+                {{ count.value }}
+                Comment(s)
+            </a>
+          </div>
+        </article>
+    {% endfor %}
+    {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if posts.page == page_num %}
+                <a  class="btn btn-info mb-4" href="{{ url_for('main.home', page=page_num) }}">{{ page_num }}</a>
+            {% else %}
+                <a  class="btn btn-outline-info mb-4" href="{{ url_for('main.home', page=page_num) }}">{{ page_num }}</a>
+            {% endif %}
+        {% else %}
+            ...
+        {% endif %}
+    {% endfor %}
+{% endblock content %}

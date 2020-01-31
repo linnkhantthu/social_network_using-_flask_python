@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block head %}
+    <script type=text/javascript>
+			$(function() {
+			  $('a#process_input').bind('click', function() {
+				$.getJSON('/background_process', {
+				  proglang: $('input[name="proglang"]').val(),
+				}, function(data) {
+				  $("#result").text(data.result);
+				});
+				return false;
+			  });
+			});
+		</script>
+        <script type=text/javascript>
+			$(function() {
+			  $('a#process_input_1').bind('click', function() {
+				$.getJSON('/background_process', {
+				  proglang_1: $('input[name="proglang_1"]').val(),
+				}, function(data) {
+				  $("#result").text(data.result);
+				});
+				return false;
+			  });
+			});
+		</script>
+{% endblock head %}
+{% block content %}
+    <div class='container'>
+        <h3>Welcome! Which is the best programming language of them all?</h3>
+        <form>
+            <input type="text" name="proglang">
+            <a href='#' id="process_input"><button class='btn btn-default'>Submit</button></a>
+        </form>
+        <form>
+            <input type="text" name="proglang_1">
+            <a href='#' id="process_input_1"><button class='btn btn-default'>Submit</button></a>
+        </form>
+        <p id="result"></p>
+    </div>
+{% endblock content %}

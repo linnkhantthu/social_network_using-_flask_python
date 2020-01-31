@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <script src='https://kit.fontawesome.com/a076d05399.js'></script>
+
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <!-- <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script> -->
+
+        <!-- Bootstrap CSS -->
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+        {% if title %}
+            <title>TUM Blog - {{ title }}</title>
+        {% else %}
+            <title>TUM Blog</title>
+        {% endif %}
+        {% block head %}
+		{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+      <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+        <div class="container">
+          <a class="navbar-brand mr-4 text-center border rounded shadow pt-1 pb-1 pl-3 pr-3" href="/">T</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarToggle">
+            <div class="navbar-nav mr-auto">
+              <a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
+              <a class="nav-item nav-link" href="{{ url_for('main.about') }}">About</a>
+                <form class="form-inline" action="/search">
+                    <input class="form-control mr-sm-2" type="search" name="tag" placeholder="@search posts" aria-label="Search" required>
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
+            </div>
+            <!-- Navbar Right Side -->
+            <div class="navbar-nav">
+                {% if current_user.is_authenticated %}
+                    <div class="dropdown">
+                        <a class='fas fa-bell text-warning mt-2 mr-1' id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style='font-size:24px'><small class="text-light" ><sup>
+                          {% set count=namespace(value=0) %}
+                          {% for post in post_s %}
+                            {% for comment in comm_ents %}
+                                {% if post.id == comment.post_id  and post.author.username == current_user.username and current_user.username != comment.author.username and comment.action == false %}
+                                    {% set count.value = count.value + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                          {% endfor %}
+                          {% if count.value != 0 %}
+                            {{count.value}}</sup></small></a>
+                            <span class="sr-only">unread messages</span>
+                          {% else %}
+                            </sup></small></a>
+                          {% endif %}
+
+                      <div class="dropdown-menu overflow-auto" aria-labelledby="dropdownMenuLink" style="max-height: 200px; max-width:300px;">
+                              {% for post in post_s %}
+                                  {% for comment in comm_ents %}
+                                    {% if post.id == comment.post_id  and post.author.username == current_user.username and current_user.username != comment.author.username %}
+                                        {% if comment.action == false %}
+                                            <a class="dropdown-item text-overflow-y bg-light" href="{{ url_for('posts.comment_notification', post_id=post.id, comment_id=comment.id) }}">
+                                            <img class="rounded-circle account-img-navi" src="/static/profile_pics/{{comment.author.image_file}}">
+                                            {{ comment.author.username }} is commented on your <br><small>'{{ post.title }}' <small>{{ comment.date_posted.strftime('%Y-%m-%d') }}</small></small>
+                                            </a>
+                                        {% else %}
+                                            <a class="dropdown-item text-overflow-y" href="{{ url_for('posts.post', post_id=post.id) }}">
+                                            <img class="rounded-circle account-img-navi" src="/static/profile_pics/{{comment.author.image_file}}">
+                                            {{ comment.author.username }} is commented on your <br>
+                                            <small class="ml-4">'{{ post.title }}' <small>{{ comment.date_posted.strftime('%Y-%m-%d') }}</small></small>
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                  {% endfor %}
+                              {% endfor %}
+                      </div>
+                    </div>
+                    <a class="nav-item nav-link" href="{{ url_for('posts.new_post') }}">New Post</a>
+                    {% if image_file %}
+                        <a class="nav-item nav-link" href="{{ url_for('users.account') }}"><img class="rounded-circle account-img-navi" src="{{ image_file }}"></a>
+                    {% endif %}
+                    <a class="nav-item nav-link" href="{{ url_for('users.account') }}">{{ current_user.username }}</a>
+                    <a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Logout</a>
+                {% else %}
+                    <a class="nav-item nav-link" href="{{ url_for('users.login') }}">Login</a>
+                    <a class="nav-item nav-link" href="{{ url_for('users.register') }}">Register</a>
+                {% endif %}
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <main role="main" class="container">
+      <div class="row">
+        <div class="col-md-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <body>
+                {% block content %}
+                {% endblock %}
+            </body>
+        </div>
+        <div class="col-md-4">
+          <div class="content-section">
+            <h3>Our Sidebar</h3>
+            <p class='text-muted'>You can put any information here you'd like.
+              <ul class="list-group">
+                <li class="list-group-item list-group-item-light">Latest Posts</li>
+                <li class="list-group-item list-group-item-light">
+                    <a href="{{ url_for('posts.search_posts', tag='@announcements') }}">
+                        Announcements
+                    </a>
+                </li>
+                <li class="list-group-item list-group-item-light">Calendars</li>
+                <li class="list-group-item list-group-item-light">etc</li>
+              </ul>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+</html>
