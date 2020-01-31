@@ -1,4 +1,4 @@
-export EMAIL_USER=linnkhantthu1999mdy@gmail.com
-export SQLALCHEMY_DATABASE_URI=sqlite:///site.db
-export SECRET_KEY=21f945cf63b5c769469401e5d3dddfb5
-export EMAIL_PASS=JUly19r1999
+export EMAIL_USER=email_user
+export SQLALCHEMY_DATABASE_URI=your_uri
+export SECRET_KEY=secret_key
+export EMAIL_PASS=password
